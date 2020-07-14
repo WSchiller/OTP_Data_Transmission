@@ -1,5 +1,4 @@
 /*******************************************************************************
-** Program 4: otp_dec_d
 ** Description: The otp_dec_d program acts as a server on local host accepting
 **              a ciphertext message and a key. Otp_dec_d set up a listener on a
 **              specified port waiting for connections, up to 5. A
@@ -9,8 +8,6 @@
 **              place.  Once the client is verified, otp_dec_d will receive the
 **              msg for decryption. The ciphertext is returned to the client.
 **
-** Date Last Modified: March 17, 2019
-** Author: Wesley Schiller
 *******************************************************************************/
 
 #include <stdio.h>
@@ -25,34 +22,11 @@
 #define MAXSIZE 72000
 #define MAXSENDSIZE 1000
 
-//------------------------------------------------------------------------------
-// Function:    error(const char *msg)
-// Parameter:
-//     In:      msg - char pointer to a message with error description
-//     Out:     none
-//
-// Returns:     none
-//
-// Desc:        Displays description of an error message before successfully
-//              exiting the program.
-//------------------------------------------------------------------------------
+
+// Display error message
 void error(const char *msg) { perror(msg); exit(1); } // Error function used for reporting issues
 
-
-//------------------------------------------------------------------------------
-// Function:    sendMessage(int socketFD, char* buffer, int msgLength)
-// Parameter:
-//     In:      socketFD - file descriptor of socket where transmission
-//              will be received.
-//              buffer - char pointer to buffer that contains message
-//              msgLength - number of chars in message
-//
-//     Out:     none
-//
-// Returns:     none
-//
-// Desc:        Sends the plaintext message back to the client..
-//-------------------------------------------------------------------------------
+// Send plaintext to client
 void sendMessage(int socketFD, char* buffer, int msgLength) {
    int curMsgLength, charsRead;
    int charsWritten = 0;
@@ -93,22 +67,7 @@ void sendMessage(int socketFD, char* buffer, int msgLength) {
    }
 }
 
-
-//------------------------------------------------------------------------------
-// Function:    receiveMessage(int communicationFD, char* buffer)
-// Parameter:
-//     In:      communicationFD - file descriptor of socket where transmission
-//              will be received.
-//              buffer - char pointer to buffer for storage
-//
-//      Out:     none
-//
-// Returns:     none
-//
-// Desc:        Receives the ciphertext and key from client storing into buffer.
-//              Breaks from receiving transmission when a * is found.  Sends
-//              acknowledgment of reception to client.
-//-------------------------------------------------------------------------------
+// Receive key and ciphertext from client
 void receiveMessage(int communicationFD, char* buffer) {
     bool newlineFound = false;
     char tempBuffer[1001];
@@ -139,19 +98,7 @@ void receiveMessage(int communicationFD, char* buffer) {
     }
 }
 
-//------------------------------------------------------------------------------
-// Function:    generatePlaintext(int communicationFD)
-// Parameter:
-//     In:      communicationFD - file descriptor of socket where transmission
-//              will be received.
-//
-//     Out:     plaintext buffer
-//
-// Returns:     none
-//
-// Desc:        Decrypts the ciphertext message with key using decyrption 
-// 		algorithm.  Sends the plaintext to the client.
-//-------------------------------------------------------------------------------
+// Decrypt ciphertext
 void generatePlaintext(int communicationFD) {
    
    char ciphertextBuffer[MAXSIZE], keyBuffer[MAXSIZE];
@@ -199,18 +146,6 @@ void generatePlaintext(int communicationFD) {
    	sendMessage(communicationFD, plaintext, strlen(plaintext));   
 }
 
-//------------------------------------------------------------------------------
-// Function:    int createListener(int portNumber)
-// Parameter:
-//     In:      portNumber - port server will be listening on for connections.
-//
-//     Out:
-//
-// Returns:     file descriptor number of the listening socket
-//
-// Desc:        Creates a listener on a specified port that can accept up to
-//              5 incoming connections.
-//-------------------------------------------------------------------------------
 int createListener(int portNumber) {
    struct sockaddr_in serverAddress;
 
