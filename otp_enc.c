@@ -1,5 +1,4 @@
 /*******************************************************************************
-** Program 4: otp_enc
 ** Description: The otp_enc program acts on behalf of the client, accepting
 *               a message and a key. Otp_enc will connect to the listening port
 *               on the otp_enc_d daemon which acts as the server.  A
@@ -11,9 +10,6 @@
 *               encryption. The message and key must only contain uppercase
 *               letters, spaces, and a trailing newline or the program will
 *               exit. The ciphertext is returned to the client.
-*                                                                                                                                                                            
-** Date Last Modified: March 17, 2019
-** Author: Wesley Schiller
 *******************************************************************************/
 
 #include <stdio.h>
@@ -33,39 +29,13 @@
 #define h_addr h_addr_list[0]
 
 
-//------------------------------------------------------------------------------
-// Function:    error(const char *msg)
-// Parameter:
-//     In:      msg - char pointer to a message with error description
-//     Out:     none
-//
-// Returns:     none
-//
-// Desc:        Displays description of an error message before successfully
-//              exiting the program.
-//-------------------------------------------------------------------------------
+// Print error message
 void error(const char *msg) { 
    perror(msg); 
    exit(0); 
 } 
 
-
-//------------------------------------------------------------------------------
-// Function:    receiveMessage(int communicationFD, char* buffer) 
-// Parameter:
-//     In:      communicationFD - file descriptor of socket where transmission
-//		will be received.
-//		buffer - char pointer to buffer for storage
-//
-//
-//     Out:     none
-//
-// Returns:     none
-//
-// Desc:        Receives the ciphertext from server storing into buffer.  Breaks 
-// 		from receiving transmission when a * is found.  Sends
-// 		acknowledgment of reception to server.
-//-------------------------------------------------------------------------------
+// Receive ciphertext from server, reply with ACK
 void receiveMessage(int communicationFD, char* buffer) {
     bool newlineFound = false;
     char tempBuffer[1001];
@@ -96,21 +66,7 @@ void receiveMessage(int communicationFD, char* buffer) {
     }
 }
 
-
-//------------------------------------------------------------------------------
-// Function:    sendMessage(int socketFD, char* buffer, int msgLength)
-// Parameter:
-//     In:      socketFD - file descriptor of socket where transmission
-//              will be received.
-//              buffer - char pointer to buffer that contains message
-//		msgLength - number of chars in message
-//
-//     Out:     none
-//
-// Returns:     none
-//
-// Desc:        Sends the plaintext and key to server for encryption.
-//-------------------------------------------------------------------------------
+// Send plaintext to server
 void sendMessage(int socketFD, char* buffer, int msgLength) {
    int curMsgLength, charsRead;
    int charsWritten = 0;
@@ -149,20 +105,6 @@ void sendMessage(int socketFD, char* buffer, int msgLength) {
    }
 }
 
-
-//------------------------------------------------------------------------------
-// Function:    authenticationHandshake(int socketFD)
-// Parameter:
-//     In:      socketFD - socket file descriptor number for communication to
-//              take place.
-//     Out:     none
-//
-// Returns:     none
-//
-// Desc:        Sends an authentication token to the server.  If the server
-//              successfully verifies the client, a success message will be
-//              received.
-//------------------------------------------------------------------------------
 void authenticationHandshake(int socketFD, int portNumber) {
    char clientToken[] = "redWolf7";
    int charsWritten, charsRead;
@@ -184,19 +126,6 @@ void authenticationHandshake(int socketFD, int portNumber) {
    }
 }
 
-//------------------------------------------------------------------------------
-// Function:    createSocket(int portNumber)
-// Parameter:
-//     In:      portNumber - listening port number on the server
-//     Out:     none
-//
-// Returns:     socket file descriptor number
-//
-// Desc:        Attempts to connect to the listening port on the server.  If
-//              successfull, a socket is created with the server that will allow
-//              for communication. The socket file descriptor number is returned
-//              for future transmission between client and server.
-//------------------------------------------------------------------------------
 int createSocket(int portNumber) {
    struct sockaddr_in serverAddress;  // IPv4 address family, server address/info
    struct hostent* serverHostInfo;  // Entry to host, host info 
