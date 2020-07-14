@@ -1,5 +1,5 @@
 /*******************************************************************************
-**OTP: key generator 
+** OTP: key generator 
 ** Description: The keygen program produces a key of a specified length from the 
 		command line argument. The key can contain random uppercase 
 		letters and a space character. Each character is printed to
