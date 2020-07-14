@@ -1,5 +1,4 @@
 /*******************************************************************************
-** Program 4: otp_enc_d
 ** Description: The otp_enc_d program acts as a server on local host accepting
 **              a plaintext message and a key. Otp_enc_d set up a listener on a 
 **		specified port waiting for connections, up to 5. A 
@@ -8,9 +7,6 @@
 **	        must be verified prior to any other data transmission can take
 **              place.  Once the client is verified, otp_enc_d will receive the
 **              for encryption  The ciphertext is returned to the client.
-**                                                                                                                                                               
-** Date Last Modified: March 17, 2019
-** Author: Wesley Schiller
 *********************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,41 +20,16 @@
 #define MAXSIZE 72000
 
 
-//------------------------------------------------------------------------------
-// Function:    error(const char *msg)
-// Parameter:
-//     In:      msg - char pointer to a message with error description
-//     Out:     none
-//
-// Returns:     none
-//
-// Desc:        Displays description of an error message before successfully
-//              exiting the program.
-//------------------------------------------------------------------------------
+// Display error msg
 void error(const char *msg) { perror(msg); exit(1); } // Error function used for reporting issues
 
-
-//------------------------------------------------------------------------------
-// Function:    sendMessage(int socketFD, char* buffer, int msgLength)
-// Parameter:
-//     In:      socketFD - file descriptor of socket where transmission
-//              will be received.
-//              buffer - char pointer to buffer that contains message
-//              msgLength - number of chars in message
-//
-//     Out:     none
-//
-// Returns:     none
-//
-// Desc:        Sends the encrypted ciphertext back to client.
-//-------------------------------------------------------------------------------
+// Send ciphertext to client
 void sendMessage(int socketFD, char* buffer, int msgLength) {
    int curMsgLength, charsRead;
    int charsWritten = 0;
    // printf("Message length: %d\n", msgLength);
    int charsRemaining = msgLength;
    bool firstPass = true;
-
 
    char ackBuffer[100];
    memset(ackBuffer, '\0', 100);
@@ -92,22 +63,6 @@ void sendMessage(int socketFD, char* buffer, int msgLength) {
    }
 }
 
-
-//------------------------------------------------------------------------------
-// Function:    receiveMessage(int communicationFD, char* buffer)
-// Parameter:
-//     In:      communicationFD - file descriptor of socket where transmission
-//              will be received.
-//              buffer - char pointer to buffer for storage
-//
-//	Out:     none
-//
-// Returns:     none
-//
-// Desc:        Receives the plaintext and key from client storing into buffer.  
-// 		Breaks from receiving transmission when a * is found.  Sends
-//              acknowledgment of reception to client.
-//-------------------------------------------------------------------------------
 void receiveMessage(int communicationFD, char* buffer) {
     bool newlineFound = false;
     char tempBuffer[1001];
@@ -137,20 +92,6 @@ void receiveMessage(int communicationFD, char* buffer) {
     }
 }
 
-//------------------------------------------------------------------------------
-// Function:    generateCipherText(int communicationFD)
-// Parameter:
-//     In:      communicationFD - file descriptor of socket where transmission
-//              will be received.
-//     
-//     Out:     ciphertext buffer 
-//
-// Returns:     none
-//
-// Desc:        Encrypts the plaintext message with key using cipher algorithm.
-// 		Sends the ciphertext to the client.
-//-------------------------------------------------------------------------------
-//
 void generateCipherText(int communicationFD) {
    char plaintextBuffer[MAXSIZE], keyBuffer[MAXSIZE];
    int plaintextLength;
@@ -189,18 +130,6 @@ void generateCipherText(int communicationFD) {
    sendMessage(communicationFD, ciphertext, strlen(ciphertext));
 }
 
-//------------------------------------------------------------------------------
-// Function:    int createListener(int portNumber)
-// Parameter:
-//     In:      portNumber - port server will be listening on for connections.
-//
-//     Out:     
-//
-// Returns:     file descriptor number of the listening socket
-//
-// Desc:        Creates a listener on a specified port that can accept up to
-// 		5 incoming connections.
-//-------------------------------------------------------------------------------
 int createListener(int portNumber) {
    struct sockaddr_in serverAddress;
 
