@@ -1,12 +1,10 @@
 /*******************************************************************************
-** Program 4 - OTP: key generator 
+OTP: key generator 
 ** Description: The keygen program produces a key of a specified length from the 
 		command line argument. The key can contain random uppercase 
 		letters and a space character. Each character is printed to
 		stdout, one by one until end of key length where a newline 
 		completes the key.
-** Date last Modified: March 8, 2019
-** Author: Wesley Schiller 
 *******************************************************************************/
 #include <stdio.h>
 #include <string.h>
