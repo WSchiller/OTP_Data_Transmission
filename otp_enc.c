@@ -43,24 +43,19 @@ void receiveMessage(int communicationFD, char* buffer) {
     bool firstPass = true;
 
     while(!newlineFound) {
-        // printf("Before received total bytes %d\n", totalBytesRead);
         int numBytesRead = recv(communicationFD, tempBuffer, sizeof(tempBuffer), 0);
-        // printf("Num bytes read %d\n", numBytesRead);
-        // printf("Temp Buffer: %s\n", tempBuffer);
-
         totalBytesRead += numBytesRead;  
 	// Read until no bytes left in transmission
         if (numBytesRead > 0) {
            for (int i = 0; i < numBytesRead; i++) {
                 char c = tempBuffer[i];
                 if (c == '*') {
-                       // printf("* End of message!\n");
                         tempBuffer[i] = '\0';
                         newlineFound = true;
                         break;
                 }
            }
-           strcat(buffer, tempBuffer);  // concatenate received transmission data into buffer
+           strcat(buffer, tempBuffer);  
         }
         send(communicationFD, "Client has received message\n", 28 , 0);  // ack
     }
@@ -88,20 +83,13 @@ void sendMessage(int socketFD, char* buffer, int msgLength) {
 		strncpy(tempBuffer, buffer + charsWritten, MAXSENDSIZE);
 	}
 	else {
-		strncpy(tempBuffer, buffer + charsWritten, charsRemaining);//strcat(tempBuffer, 
-		tempBuffer[charsRemaining] = '*';  // Delimiter to specify end of message
+		strncpy(tempBuffer, buffer + charsWritten, charsRemaining);
+		tempBuffer[charsRemaining] = '*'; 
 	}
-   	curMsgLength = strlen(tempBuffer);
-	//printf("%s\n", tempBuffer);
-	//printf("Chars Written: %d\n", charsWritten);
-	
+   	curMsgLength = strlen(tempBuffer);	
 	charsWritten += send(socketFD, tempBuffer, curMsgLength, 0); 
 	charsRead = recv(socketFD, ackBuffer, sizeof(ackBuffer), 0);
-	
-	//printf("Chars Read: %d\n", charsRead);
-	//printf("ACK Buffer: %s\n", ackBuffer);
 	charsRemaining = msgLength - charsWritten;
-	//printf("Charms Remaining %d\n", charsRemaining);
    }
 }
 
@@ -110,7 +98,7 @@ void authenticationHandshake(int socketFD, int portNumber) {
    int charsWritten, charsRead;
    char buffer[100];
 
-   memset(buffer, '\0', sizeof(buffer));  // clear buffer
+   memset(buffer, '\0', sizeof(buffer));  
    
    // Send client token to server.  Ensure we can send on socket.
    charsWritten = send(socketFD, clientToken, sizeof(clientToken), 0);
@@ -136,7 +124,7 @@ int createSocket(int portNumber) {
    serverAddress.sin_port = htons(portNumber); // Store the clinets port number
 
    // Set up host
-   serverHostInfo = gethostbyname("localhost"); // IPC/localhost - loopback to another process on the local system
+   serverHostInfo = gethostbyname("localhost"); // loopback to another process on the local system
    if (serverHostInfo == NULL) { fprintf(stderr, "CLIENT: ERROR, no such host\n"); exit(0); }  // Error connecting to localhost
    memcpy((char*)&serverAddress.sin_addr.s_addr, (char*)serverHostInfo->h_addr, serverHostInfo->h_length); // Copy in the host address to server
 
@@ -166,7 +154,7 @@ int main(int argc, char *argv[])
 	if (argc != 4) { fprintf(stderr,"USAGE: %s otp_enc plaintext key port\n", argv[0]); exit(0); } // Check usage & args
 
 	// Attempt to establish connection with server
-	portNumber = atoi(argv[3]); // Get the clients port number.  Convert string to integer.
+	portNumber = atoi(argv[3]); // Get the clients port number
 	socketFD = createSocket(portNumber);
 	
 	// Client/Server authentication handshake.
@@ -180,12 +168,11 @@ int main(int argc, char *argv[])
 		perror("Failed to open file!");
 		exit(1);
 	}
-	memset(plaintextBuffer, '\0', MAXSIZE);  // Clear buffer, before storing input	
-	ret_plaintext = read(plaintext_fd, plaintextBuffer, sizeof(plaintextBuffer));  // Read data from plaintext file
-	plaintextLength = strlen(plaintextBuffer);  // Get length of plaintext file
+	memset(plaintextBuffer, '\0', MAXSIZE);  	
+	ret_plaintext = read(plaintext_fd, plaintextBuffer, sizeof(plaintextBuffer)); 
+	plaintextLength = strlen(plaintextBuffer);  
 
 	// Check plaintext buffer to ensure all characters are valid
-	// Valid character are uppercase letters, space, and newline
 	for (i =0; i < plaintextLength; i++) { 
 		if ((!isupper(plaintextBuffer[i])) && (!isspace(plaintextBuffer[i])) && (plaintextBuffer[i] != '\n')) {
 			fprintf(stderr, "Invalid character(s) found in %s file!\n", argv[1]);
@@ -201,12 +188,11 @@ int main(int argc, char *argv[])
 		perror("Failed to open file!");
 		exit(1);
 	}
-	memset(keyBuffer, '\0', MAXSIZE);  // Clear buffer, before storing input	
-	ret_key = read(key_fd, keyBuffer, sizeof(keyBuffer));  // Read from key file
-	keyLength = strlen(keyBuffer);  // Get length of key buffer
+	memset(keyBuffer, '\0', MAXSIZE);  	
+	ret_key = read(key_fd, keyBuffer, sizeof(keyBuffer));  
+	keyLength = strlen(keyBuffer);  
 
 	// Check key buffer to ensure all characters are valid
-	// Valid character are uppercase letters, space, and newline
 	for (i =0; i < keyLength; i++) { 	
 		if ((!isupper(keyBuffer[i])) && (!isspace(keyBuffer[i])) && (keyBuffer[i] != '\n')) {
 			fprintf(stderr, "Invalid character found in key!");
@@ -220,12 +206,7 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	// Send plaintext and key to child for encryption
-	//printf("Plaintext Length %d\n", plaintextLength);
-	//printf("Key Length %d\n", keyLength);
-
 	sendMessage(socketFD, plaintextBuffer, plaintextLength);
-
    	sendMessage(socketFD, keyBuffer, keyLength);
     
 	// Receive Cipher Text
