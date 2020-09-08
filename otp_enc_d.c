@@ -27,7 +27,6 @@ void error(const char *msg) { perror(msg); exit(1); } // Error function used for
 void sendMessage(int socketFD, char* buffer, int msgLength) {
    int curMsgLength, charsRead;
    int charsWritten = 0;
-   // printf("Message length: %d\n", msgLength);
    int charsRemaining = msgLength;
    bool firstPass = true;
 
@@ -45,21 +44,13 @@ void sendMessage(int socketFD, char* buffer, int msgLength) {
                 strncpy(tempBuffer, buffer + charsWritten, 1000);
         }
         else {
-                strncpy(tempBuffer, buffer + charsWritten, charsRemaining);//strcat(tempBuffer,
+                strncpy(tempBuffer, buffer + charsWritten, charsRemaining);
                 tempBuffer[charsRemaining - 1] = '*';  // Delimiter to specify end of message
-         //       printf("* appended to end of message\n");
         }
         curMsgLength = strlen(tempBuffer);
-       // printf("%s\n", tempBuffer);
-       // printf("Chars Written: %d\n", charsWritten);
-
         charsWritten += send(socketFD, tempBuffer, curMsgLength, 0);
         charsRead = recv(socketFD, ackBuffer, sizeof(ackBuffer), 0);
-
-        //printf("Chars Read: %d\n", charsRead);
-        //printf("ACK Buffer: %s\n", ackBuffer);
         charsRemaining = msgLength - charsWritten;
-        //printf("Charms Remaining %d\n", charsRemaining);
    }
 }
 
@@ -70,16 +61,12 @@ void receiveMessage(int communicationFD, char* buffer) {
     bool firstPass = true;
     
     while(!newlineFound) {
-    // printf("Before received total bytes %d\n", totalBytesRead);
     	int numBytesRead = recv(communicationFD, tempBuffer, sizeof(tempBuffer), 0);
-    // printf("Num bytes read %d\n", numBytesRead);
-    // printf("Temp Buffer: %s\n", tempBuffer);
 	totalBytesRead += numBytesRead;
     	if (numBytesRead > 0) {	
 	   for (int i=0; i<numBytesRead; i++) {
 		char c = tempBuffer[i];
 		if (c == '*') {
-			// printf("* End of message!\n");
 			tempBuffer[i] = '\0';
 			newlineFound = true;
 			break;
@@ -87,7 +74,6 @@ void receiveMessage(int communicationFD, char* buffer) {
    	   }	   
 	   strcat(buffer, tempBuffer);   
 	}	
-
 	send(communicationFD, "Server has received message\n", 28, 0);
     }
 }
@@ -95,7 +81,6 @@ void receiveMessage(int communicationFD, char* buffer) {
 void generateCipherText(int communicationFD) {
    char plaintextBuffer[MAXSIZE], keyBuffer[MAXSIZE];
    int plaintextLength;
-   // Clear buffers
    memset(plaintextBuffer, '\0', MAXSIZE);
    memset(keyBuffer, '\0', MAXSIZE);
 
@@ -171,7 +156,7 @@ int main(int argc, char *argv[])
    } 
 
    // Set up listening port on client server to take in client requests
-   portNumber = atoi(argv[1]); // Get the port number from arguments, convert to an integer from a string
+   portNumber = atoi(argv[1]); 
    listenSocketFD = createListener(portNumber);
 
    // Loop for incoming connection request.  Up to 5 active connections at a time
