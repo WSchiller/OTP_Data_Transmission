@@ -42,13 +42,10 @@ void receiveMessage(int communicationFD, char* buffer) {
    bool firstPass = true;
 
    while(!newlineFound) {
-   	memset(tempBuffer, '\0', sizeof(tempBuffer));	
-        // printf("Before received total bytes %d\n", totalBytesRead);
+   	memset(tempBuffer, '\0', sizeof(tempBuffer));	       
         int numBytesRead = recv(communicationFD, tempBuffer, sizeof(tempBuffer), 0);
-        // printf("Num bytes read %d\n", numBytesRead);
-        // printf("Temp Buffer: %s\n", tempBuffer);
-
         totalBytesRead += numBytesRead;
+	   
         if (numBytesRead > 0) {
            for (int i=0; i<numBytesRead; i++) {
                 char c = tempBuffer[i];
@@ -92,16 +89,9 @@ void sendMessage(int socketFD, char* buffer, int msgLength) {
 		tempBuffer[charsRemaining] = '*';  // Delimiter to specify end of message
 	}
    	curMsgLength = strlen(tempBuffer);
-	//printf("%s\n", tempBuffer);
-	//printf("Chars Written: %d\n", charsWritten);
-	
 	charsWritten += send(socketFD, tempBuffer, curMsgLength, 0); 
 	charsRead = recv(socketFD, ackBuffer, sizeof(ackBuffer), 0);
-	
-	//printf("Chars Read: %d\n", charsRead);
-	//printf("ACK Buffer: %s\n", ackBuffer);
 	charsRemaining = msgLength - charsWritten;
-	//printf("Charms Remaining %d\n", charsRemaining);
    }
 }
 
@@ -127,20 +117,19 @@ void authenticationHandshake(int socketFD, int portNumber) {
    }
 }
 
-
 // Attempt to connect to listening port on server
 int createSocket(int portNumber) {
-   struct sockaddr_in serverAddress;  // IPv4 address family, server address/info
-   struct hostent* serverHostInfo;  // Entry to host, host info 
+   struct sockaddr_in serverAddress;  // IPv4 address family
+   struct hostent* serverHostInfo;  // Entry to host 
 	
    // Set up the server address struct
-   memset((char*)&serverAddress, '\0', sizeof(serverAddress)); // Clear out the address struct
+   memset((char*)&serverAddress, '\0', sizeof(serverAddress)); 
    serverAddress.sin_family = AF_INET; // Create a network-capable socket
    serverAddress.sin_port = htons(portNumber); // Store the clients port number
 
    // Set up host
-   serverHostInfo = gethostbyname("localhost"); // IPC/localhost - loopback to another process on the local system
-   if (serverHostInfo == NULL) { fprintf(stderr, "CLIENT: ERROR, no such host\n"); exit(0); }  // Error connecting to localhost
+   serverHostInfo = gethostbyname("localhost"); // loopback to another process on the local system
+   if (serverHostInfo == NULL) { fprintf(stderr, "CLIENT: ERROR, no such host\n"); exit(0); }  
    memcpy((char*)&serverAddress.sin_addr.s_addr, (char*)serverHostInfo->h_addr, serverHostInfo->h_length); // Copy in the host address to server
 
    // Create Socket. 1. AF_INET: IP address family. 2. SOCK_STREAM: reliable 2-way connection based byte streams  
@@ -148,7 +137,7 @@ int createSocket(int portNumber) {
    if (socketFD < 0) error("CLIENT: ERROR opening socket");
 	
    // Connect to server
-   if (connect(socketFD, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0) // Connect socket to address
+   if (connect(socketFD, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0) 
 		error("CLIENT: ERROR connecting");
 
    return socketFD;
@@ -169,7 +158,7 @@ int main(int argc, char *argv[])
    if (argc != 4) { fprintf(stderr,"USAGE: %s otp_enc plaintext key port\n", argv[0]); exit(0); } // Check usage & args
 
    // Attempt to establish connection with server
-   portNumber = atoi(argv[3]); // Get port number.  Convert string to integer.
+   portNumber = atoi(argv[3]); // Get port number
    socketFD = createSocket(portNumber);
 	
    // Client/Server authentication handshake.
@@ -178,29 +167,26 @@ int main(int argc, char *argv[])
    // Get and Open ciphertext file
    ciphertext_fd = open(argv[1], O_RDONLY);
 	
-   // Failed to open file
    if (ciphertext_fd < 0) {
 	perror("Failed to open file!");
 	exit(1);
    }
-   memset(ciphertextBuffer, '\0', MAXSIZE);  // Clear buffer, before storing input	
-   ret_ciphertext = read(ciphertext_fd, ciphertextBuffer, sizeof(ciphertextBuffer));  // Read data from ciphertext file
-   ciphertextLength = strlen(ciphertextBuffer);  // Get length of ciphertext file
+   memset(ciphertextBuffer, '\0', MAXSIZE); 	
+   ret_ciphertext = read(ciphertext_fd, ciphertextBuffer, sizeof(ciphertextBuffer));  
+   ciphertextLength = strlen(ciphertextBuffer); 
 	
    // Open generated key file
    key_fd = open(argv[2], O_RDONLY);
 	
-   // Failed to open file
    if (key_fd < 0) {
 	perror("Failed to open file!");
 	exit(1);
    }
-   memset(keyBuffer, '\0', MAXSIZE);  // Clear buffer, before storing input	
-   ret_key = read(key_fd, keyBuffer, sizeof(keyBuffer));  // Read from key file
-   keyLength = strlen(keyBuffer);  // Get length of key buffer
+   memset(keyBuffer, '\0', MAXSIZE);  	
+   ret_key = read(key_fd, keyBuffer, sizeof(keyBuffer));  
+   keyLength = strlen(keyBuffer);  
 
    // Check key buffer to ensure all characters are valid
-   // Valid character are uppercase letters, space, and newline
    for (i =0; i < keyLength; i++) { 	
 	if ((!isupper(keyBuffer[i])) && (!isspace(keyBuffer[i])) && (keyBuffer[i] != '\n')) {
 		fprintf(stderr, "Invalid character found in key!");
@@ -215,22 +201,19 @@ int main(int argc, char *argv[])
    }
 
    // Send ciphertext and key to daemon for decyrption
-   //printf("Ciphertext Length %d\n", ciphertextLength);
-   //printf("Key Length %d\n", keyLength);
    sendMessage(socketFD, ciphertextBuffer, ciphertextLength);
    sendMessage(socketFD, keyBuffer, keyLength);
     
    // Receive plaintext
    char plaintext[ciphertextLength + 1];
    memset(plaintext, '\0', sizeof(plaintext));
-
    receiveMessage(socketFD, plaintext); 	
    int plaintextLength = strlen(plaintext);
 
    // Print plaintext to stdout
    for(i = 0; i < plaintextLength; i++) {
 	if (plaintext[i] == '[') {
-		plaintext[i] = ' '; // Change bracket back to space
+		plaintext[i] = ' '; 
 	}
 	printf("%c", plaintext[i]);
    }
